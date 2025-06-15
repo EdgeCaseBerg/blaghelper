@@ -1,6 +1,8 @@
 import sublime
 import sublime_plugin
 import os
+import sys
+import tracemalloc
 import timeit
 from functools import cached_property, wraps
 from collections import deque
@@ -8,6 +10,7 @@ from collections import deque
 href_files = []
 known_files_tracker = PathTrie()
 
+ENABLE_MEM_COUNT = False
 ENABLE_TIMING = False
 CURRENT_KIND = (sublime.KindId.COLOR_BLUISH, "➘", "Link Expansion")
 
@@ -86,6 +89,44 @@ def timing(func):
             print(info)
         return result
     return wrap
+
+# https://docs.python.org/3/library/tracemalloc.html#tracemalloc.start
+def memoryusage(func):
+	@wraps(func)
+	def wrap(*args, **kw):
+		if ENABLE_MEM_COUNT:
+			tracemalloc.start()
+			(current_start, peak_1) = tracemalloc.get_traced_memory()
+		result = func(*args, **kw)
+		if ENABLE_MEM_COUNT:
+			(curent_end, peak_2) = tracemalloc.get_traced_memory()
+			tracemalloc.stop()
+			info = f"{func.__name__}({args}, {kw}) start:{current_start} stop:{curent_end} peaks: {peak_1} {peak_2}"
+			print(info)
+
+		return result
+	return wrap
+
+def total_size(obj, seen=None):
+    """Recursively calculate total memory size of an object and its contents."""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    seen.add(obj_id)
+
+    if isinstance(obj, dict):
+        size += sum(total_size(k, seen) + total_size(v, seen) for k, v in obj.items())
+    elif isinstance(obj, (list, tuple, set)):
+        size += sum(total_size(i, seen) for i in obj)
+    elif hasattr(obj, "__dict__"):
+        size += total_size(obj.__dict__, seen)
+    elif hasattr(obj, "__slots__"):
+        size += sum(total_size(getattr(obj, slot), seen) for slot in obj.__slots__ if hasattr(obj, slot))
+
+    return size
 
 @timing
 def plugin_loaded():
