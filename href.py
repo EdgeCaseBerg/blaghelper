@@ -8,74 +8,11 @@ from functools import cached_property, wraps
 from collections import deque
 
 href_files = []
-known_files_tracker = PathTrie()
+known_files_tracker = {}
 
 ENABLE_MEM_COUNT = False
 ENABLE_TIMING = False
 CURRENT_KIND = (sublime.KindId.COLOR_BLUISH, "➘", "Link Expansion")
-
-class PathTrieNode:
-	def __init__(self):
-		self.children = {}
-		self.is_end_of_path = False
-
-class PathTrie:
-	def __init__(self):
-		self.root = PathTrieNode()
-		self.seperator = os.sep
-
-	def insert(self, path):
-		node = self.root
-		parts = path.split(self.seperator)
-		for path_part in parts:
-			node = node.children.setdefault(path_part, PathTrieNode())
-		node.is_end_of_path = True
-
-	@timing
-	def contains(self, path):
-		node = self.root
-		parts = path.split(self.seperator)
-		for path_part in parts:
-			if path_part in node.children:
-				node = node.children[path_part]
-			else:
-				return False
-		return node.is_end_of_path
-
-	def remove(self, path):
-		# This is a sweep the broom back and forth approach
-		# where we go to the child, while tracking where we
-		# were, and then sweep back and decide to drop the
-		# entire Trie branch if there's no more children or similar
-		parents = deque()
-		node = self.root
-		parts = path.split(self.seperator)
-		for part in path_parts:
-			if part not in node.children:
-				# It's not in the Trie in the first place, piss off
-				return
-			parents.appendleft((node, part))
-			node = node.children[part]
-
-		if not node.is_end_of_path:
-			# If the path drops us off without a file at the end
-			# then there's not really anything to be done here.
-			return
-
-		# But if we ARE at the end, then it's time to clean up!
-		# Congrats, you are not the father:
-		node.is_end_of_path = False
-
-		# Let's walk back up and see if we can trim the branches
-		for parent, part in parents:
-			child = parent.children[part]
-			if child.is_end_of_path or child.children:
-				# The child is a terminal (not likely)
-				# or the child has other files in it (likely)
-				break
-			del parent.children[part]
-
-		# Done! 
 
 def timing(func):
     @wraps(func)
@@ -135,22 +72,26 @@ def plugin_loaded():
 			add_files_to_suggestions(folder)
 	sublime.status_message("HrefHelper context loaded")
 
+@memoryusage
 def add_files_to_suggestions(folder):
 	for root, dirs, filenames in os.walk(folder):
 		for handle in filenames:
 			full_path = os.path.join(root, handle)
 			# Skip if we know about this already
-			if known_files_tracker.contains(full_path):
+			if full_path is None:
+				continue
+
+			if full_path in known_files_tracker:
 				continue
 
 			relative = os.path.relpath(full_path, folder)
-			file_href_path = relative.replace("\\", "/")
+			file_href_path = relative.replace(os.sep, "/")
 
 			# We could make this a setting for the plugin
 			if file_href_path[0] != ".":
 				href_files.append(completion_for(handle, file_href_path))
 				href_files.append(completion_for(file_href_path, file_href_path))
-				known_files_tracker.insert(full_path)
+				known_files_tracker[full_path] = 0
 	sublime.status_message(f"Loaded {folder} to href context")
 
 def completion_for(handle, file_href_path):
@@ -172,7 +113,7 @@ class HrefCommand(sublime_plugin.ViewEventListener):
 			return
 
 		file_name = active_view.file_name()
-		if known_files_tracker.contains(file_name):
+		if file_name is None or file_name in known_files_tracker:
 			return
 
 		handle = file_name.split(os.sep)[-1]
