@@ -65,6 +65,12 @@ def total_size(obj, seen=None):
 
     return size
 
+class ReindexFoldersCommand(sublime_plugin.WindowCommand):
+	def run(self):
+		for window in sublime.windows():
+			for folder in window.folders():
+				add_files_to_suggestions(folder)
+
 @timing
 def plugin_loaded():
 	for window in sublime.windows():

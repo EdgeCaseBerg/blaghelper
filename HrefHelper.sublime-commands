@@ -1,0 +1,3 @@
+[
+	{ "caption": "Href: Re-index all open folders", "command": "reindex_folders" },
+]
