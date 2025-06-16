@@ -1,0 +1,13 @@
+<snippet>
+    <content>
+<![CDATA[
+<li id="footnote-$1">
+    $0
+    <a href="#footnote-$1-ref">&#8617;</a>
+</li>
+]]>
+    </content>
+    <tabTrigger>blag_footnote</tabTrigger>
+    <scope>text.html</scope>
+    <description>A footnote for the bottom of the page</description>
+</snippet>        

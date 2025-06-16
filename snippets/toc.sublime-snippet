@@ -1,0 +1,14 @@
+<snippet>
+    <content>
+<![CDATA[
+<nav id="toc">
+    <ol>
+        <li><a href="#section-1">$1</a></li>
+    </ol>
+</nav>
+]]>
+    </content>
+    <tabTrigger>blag_toc</tabTrigger>
+    <scope>text.html</scope>
+    <description>the table of contents</description>
+</snippet>        
