@@ -1,8 +1,0 @@
-<snippet>
-	<content>
-		<![CDATA[<sup id="footnote-$1-ref"><a href="#footnote-$1">$1</a></sup>$0]]>
-	</content>
-	<tabTrigger>blag_footref</tabTrigger>
-	<scope>text.html</scope>
-	<description>the anchor and sup combination</description>
-</snippet>
