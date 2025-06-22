@@ -29,7 +29,10 @@
     <hr>
     <main>
         <h1>$4</h1>
-        <time datetime="${2:YEAR-MM-DD}">Published ${5:Month N, Year}</time>
+        <p>
+            <time datetime="${2:YEAR-MM-DD}">Published ${5:Month N, Year}</time>
+            <small>Estimated reading time <span id="reading-time"></span></small>
+        </p>
         <summary>
             $0
         </summary>
