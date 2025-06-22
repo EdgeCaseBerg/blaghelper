@@ -44,27 +44,6 @@ def memoryusage(func):
 		return result
 	return wrap
 
-def total_size(obj, seen=None):
-    """Recursively calculate total memory size of an object and its contents."""
-    size = sys.getsizeof(obj)
-    if seen is None:
-        seen = set()
-    obj_id = id(obj)
-    if obj_id in seen:
-        return 0
-    seen.add(obj_id)
-
-    if isinstance(obj, dict):
-        size += sum(total_size(k, seen) + total_size(v, seen) for k, v in obj.items())
-    elif isinstance(obj, (list, tuple, set)):
-        size += sum(total_size(i, seen) for i in obj)
-    elif hasattr(obj, "__dict__"):
-        size += total_size(obj.__dict__, seen)
-    elif hasattr(obj, "__slots__"):
-        size += sum(total_size(getattr(obj, slot), seen) for slot in obj.__slots__ if hasattr(obj, slot))
-
-    return size
-
 class ReindexFoldersCommand(sublime_plugin.WindowCommand):
 	def run(self):
 		for window in sublime.windows():
