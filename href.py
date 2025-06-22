@@ -91,45 +91,7 @@ def completion_for(handle, file_href_path):
 		details
 	)
 
-class HrefCommand(sublime_plugin.ViewEventListener):
-	def on_activated_async(self):
-		active_view = sublime.active_window().active_view()
-		if active_view is None:
-			return
-
-		file_name = active_view.file_name()
-		if file_name is None or file_name in known_files_tracker:
-			return
-
-		handle = file_name.split(os.sep)[-1]
-		inside_folder = False
-		found_folder = None
-		for window in sublime.windows():
-			for folder in window.folders():
-				try:
-					common = os.path.commonpath([file_name, folder])
-					if common == folder:
-						inside_folder = True
-						found_folder = folder
-				except ValueError as e:
-					print(e)
-				
-				
-
-		if not inside_folder:
-			# We have a file that is not inside any folder in sublime,
-			# this means it's just a loose file and we have no way
-			# to make a sensible url to it, so skip it.
-			return
-
-		# If we've hit this point, then the file is inside of a folder
-		# that's open sublime, but we haven't indexed it. This might
-		# mean it's a new file create in an existing folder, or there's
-		# a brand new folder added to the sublime project we need to index
-		# so go ahead and do that, the Trie contains check will prevent
-		# dupes!
-		add_files_to_suggestions(found_folder)
-
+class IndexedFilesCompletionsViewEventListener(sublime_plugin.ViewEventListener):
 	def on_query_completions(self, prefix, locations):
 		# If someone is using multicursors, ensure all cursors
 		# are within the correct context before we offer ourselves
@@ -148,3 +110,5 @@ class HrefCommand(sublime_plugin.ViewEventListener):
 				return None
 
 		return sublime.CompletionList(href_files)
+
+
