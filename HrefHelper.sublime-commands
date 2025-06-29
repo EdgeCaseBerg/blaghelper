@@ -1,3 +1,7 @@
 [
 	{ "caption": "Blag: Re-index all open folders", "command": "reindex_folders" },
+	{ "caption": "Blag: start live-reload", "command": "live_reload_start" },
+	{ "caption": "Blag: stop all live-reload", "command": "stop_all_live_reload_servers" },
+	{ "caption": "Blag: Open in live-reload", "command": "open_in_live_reload" },
+	{ "caption": "Blag: escape code snippet", "command": "escape_code_snippet"}
 ]

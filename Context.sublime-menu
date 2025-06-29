@@ -1,0 +1,6 @@
+[
+	{ "caption": "-", "id": "file" },
+	{ "caption": "-", "id": "blag" },
+	{ "command": "open_in_live_reload", "caption": "Live reload this folder" },
+	{ "caption": "-", "id": "end" }
+]
