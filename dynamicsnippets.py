@@ -1,11 +1,12 @@
 import sublime
 import sublime_plugin
 import inspect
+from email.utils import formatdate
 
 def plugin_loaded():
 	print("blag: dynamic snippets loaded")
 
-class DynamicSnippetsViewEventListener(sublime_plugin.ViewEventListener):
+class DynamicHtmlSnippets(sublime_plugin.ViewEventListener):
 	def __init__(self, view):
 		self.view = view
 		self.footnote_snippet = inspect.cleandoc("""
@@ -81,5 +82,49 @@ class DynamicSnippetsViewEventListener(sublime_plugin.ViewEventListener):
 			self.footnote_completion(),
 			self.footnote_ref_completion(),
 			self.new_section_completion()
+		]
+		return sublime.CompletionList(prefilled_snippets)
+
+
+class DynamicXmlSnippets(sublime_plugin.ViewEventListener):
+	def __init__(self, view):
+		self.view = view
+		self.feeditem_snipet = inspect.cleandoc("""
+			<item>
+				<title>$1</title>
+				<link>$2</link>
+				<guid>$2</guid>
+				<pubDate>{0}</pubDate>
+				<description>
+					![CDATA[
+						$0
+					]]
+				</description>
+			</item>
+			""")
+
+	def new_feed_item_completion(self):
+		# Current time in RFC 822 format for RSS
+		todays_date_in_gmt = formatdate(timeval=None, localtime=False, usegmt=True)
+		new_snippet = self.feeditem_snipet.format(f"{todays_date_in_gmt}")
+		return sublime.CompletionItem(
+			"blag_xml_item",
+			annotation = "a new rss item",
+			completion = new_snippet,
+			completion_format = sublime.COMPLETION_FORMAT_SNIPPET,
+			kind=sublime.KIND_SNIPPET
+		)		
+
+	def on_query_completions(self, prefix, locations):
+		for point in locations:
+			in_xml_scope = self.view.match_selector(point, "text.xml")
+			if in_xml_scope is False:
+				return None
+
+		if "blag" not in prefix:
+			return None
+
+		prefilled_snippets = [
+			self.new_feed_item_completion()
 		]
 		return sublime.CompletionList(prefilled_snippets)
